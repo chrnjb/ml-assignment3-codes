@@ -1,0 +1,8 @@
+// Running the k-means algorithm on the dataset for k=3
+
+# Run K-means for k=3
+k = 3
+labels_k3, centroids_k3, inertia_k3 = kmeans_clustering(X_normalized, k)
+
+# Display results for k=3
+labels_k3, centroids_k3, inertia_k3
