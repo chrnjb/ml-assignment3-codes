@@ -1,0 +1,121 @@
+// Complete implementation
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Create DataFrame from the provided data
+data = {
+    'x1': [24.412, 35.19, 26.288, 0.376, 26.116, 25.893, 23.606, 28.026, 26.36, 23.013, 27.819, 39.634, 35.477, 25.768, -0.684, 3.387, 32.986, 34.258, 6.313, 33.899, 4.718, 21.054, 3.267, 24.537, 4.55, 25.712, 3.884, 29.081, 14.943, 32.169, 32.572, 33.673, 29.189, 25.994, 16.513, 23.492, 26.878, 31.604, 34.078, 11.286, 30.15, 36.569, 3.983, 12.891, 21.314, 29.101, 30.671, 35.139, 35.563, 35.028, 9.776, 24.268, -0.36, 33.062, 21.034, 31.806, 22.493, 29.056, 29.822, 35.439],
+    'x2': [32.932, 12.189, 41.718, 15.506, 3.963, 31.515, 15.402, 15.47, 34.488, 36.213, 41.867, 42.23, 35.104, 5.967, 21.105, 17.81, 3.412, 9.931, 29.426, 37.535, 12.125, 5.067, 21.911, 38.822, 16.179, 7.409, 28.616, 34.539, 23.263, 45.421, 16.944, 13.163, 13.226, 34.444, 23.396, 11.142, 36.609, 36.911, 33.827, 16.082, 9.642, 45.827, 11.839, 23.832, 13.264, 44.781, 9.294, 9.803, 42.759, 15.779, 16.988, 5.693, 15.319, 47.693, 37.463, 4.484, 39.466, 46.004, 13.83, 14.439]
+}
+
+df = pd.DataFrame(data)
+
+# Normalize the dataset using Min-Max scaling
+def normalize_data(X):
+    min_vals = np.min(X, axis=0)
+    max_vals = np.max(X, axis=0)
+    range_vals = max_vals - min_vals
+    range_vals[range_vals == 0] = 1  # Avoid division by zero
+    normalized_X = (X - min_vals) / range_vals
+    return normalized_X
+
+# Extract features and normalize
+X = df.values
+X_normalized = normalize_data(X)
+
+# Implement K-means clustering algorithm
+def euclidean_distance(point1, point2):
+    return np.sqrt(np.sum((point1 - point2) ** 2))
+
+def kmeans_clustering(X, k, max_iters=100, tol=1e-4):
+    # Get dimensions of the dataset
+    n_samples, n_features = X.shape
+    
+    # Initialize centroids randomly by selecting k random data points
+    np.random.seed(42)  # For reproducibility
+    indices = np.random.choice(n_samples, k, replace=False)
+    centroids = X[indices]
+    
+    # Initialize array to store cluster assignments
+    labels = np.zeros(n_samples)
+    
+    # Main loop
+    for iteration in range(max_iters):
+        # Store old centroids for convergence check
+        old_centroids = centroids.copy()
+        
+        # Assign each point to the nearest centroid
+        for i in range(n_samples):
+            distances = [euclidean_distance(X[i], centroid) for centroid in centroids]
+            cluster = np.argmin(distances)
+            labels[i] = cluster
+        
+        # Update centroids based on the mean of points in each cluster
+        for j in range(k):
+            cluster_points = X[labels == j]
+            if len(cluster_points) > 0:
+                centroids[j] = np.mean(cluster_points, axis=0)
+        
+        # Check for convergence
+        if np.sum([euclidean_distance(centroids[i], old_centroids[i]) for i in range(k)]) < tol:
+            break
+    
+    # Calculate inertia (sum of squared distances to closest centroid)
+    inertia = 0
+    for i in range(n_samples):
+        inertia += euclidean_distance(X[i], centroids[int(labels[i])]) ** 2
+    
+    return labels, centroids, inertia
+
+# Function to plot clusters
+def plot_clusters(X, labels, centroids, title):
+    plt.figure(figsize=(10, 6))
+    
+    # Create a scatter plot for each cluster
+    unique_labels = np.unique(labels)
+    colors = plt.cm.rainbow(np.linspace(0, 1, len(unique_labels)))
+    
+    for i, label in enumerate(unique_labels):
+        cluster_points = X[labels == label]
+        plt.scatter(
+            cluster_points[:, 0], 
+            cluster_points[:, 1], 
+            s=50, 
+            c=[colors[i]], 
+            label=f'Cluster {int(label)}'
+        )
+    
+    # Plot centroids
+    plt.scatter(
+        centroids[:, 0], 
+        centroids[:, 1], 
+        s=200, 
+        marker='X', 
+        c='black', 
+        label='Centroids'
+    )
+    
+    plt.title(title)
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.show()
+
+# Run K-means for k=2
+k = 2
+labels_k2, centroids_k2, inertia_k2 = kmeans_clustering(X_normalized, k)
+print(f"K=2 Inertia: {inertia_k2:.4f}")
+
+# Run K-means for k=3
+k = 3
+labels_k3, centroids_k3, inertia_k3 = kmeans_clustering(X_normalized, k)
+print(f"K=3 Inertia: {inertia_k3:.4f}")
+
+# Plot results for k=2
+plot_clusters(X_normalized, labels_k2, centroids_k2, 'K-means Clustering (k=2)')
+
+# Plot results for k=3
+plot_clusters(X_normalized, labels_k3, centroids_k3, 'K-means Clustering (k=3)')
