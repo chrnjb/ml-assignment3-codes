@@ -1,0 +1,42 @@
+// Visualizing the clustering the results for k=2 and k=3
+
+import matplotlib.pyplot as plt
+
+# Function to plot clusters
+
+def plot_clusters(X, labels, centroids, title):
+    plt.figure(figsize=(10, 6))
+    unique_labels = np.unique(labels)
+    colors = plt.cm.rainbow(np.linspace(0, 1, len(unique_labels)))
+    
+    for i, label in enumerate(unique_labels):
+        cluster_points = X[labels == label]
+        plt.scatter(
+            cluster_points[:, 0], 
+            cluster_points[:, 1], 
+            s=50, 
+            c=[colors[i]], 
+            label=f'Cluster {int(label)}'
+        )
+    
+    plt.scatter(
+        centroids[:, 0], 
+        centroids[:, 1], 
+        s=200, 
+        marker='X', 
+        c='black', 
+        label='Centroids'
+    )
+    
+    plt.title(title)
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.show()
+
+# Plot results for k=2
+plot_clusters(X_normalized, labels_k2, centroids_k2, 'K-means Clustering (k=2)')
+
+# Plot results for k=3
+plot_clusters(X_normalized, labels_k3, centroids_k3, 'K-means Clustering (k=3)')
