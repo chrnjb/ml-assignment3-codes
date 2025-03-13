@@ -1,0 +1,40 @@
+// Running the K-means algorithm on the dataset for k=2
+
+# Implement K-means clustering algorithm
+def euclidean_distance(point1, point2):
+    return np.sqrt(np.sum((point1 - point2) ** 2))
+
+def kmeans_clustering(X, k, max_iters=100, tol=1e-4):
+    n_samples, n_features = X.shape
+    indices = np.random.choice(n_samples, k, replace=False)
+    centroids = X[indices]
+    labels = np.zeros(n_samples)
+
+    for iteration in range(max_iters):
+        old_centroids = centroids.copy()
+
+        for i in range(n_samples):
+            distances = [euclidean_distance(X[i], centroid) for centroid in centroids]
+            labels[i] = np.argmin(distances)
+
+        for j in range(k):
+            cluster_points = X[labels == j]
+            if len(cluster_points) > 0:
+                centroids[j] = np.mean(cluster_points, axis=0)
+
+        if np.sum([euclidean_distance(centroids[i], old_centroids[i]) for i in range(k)]) < tol:
+            break
+
+    inertia = 0
+    for i in range(n_samples):
+        inertia += euclidean_distance(X[i], centroids[int(labels[i])]) ** 2
+
+    return labels, centroids, inertia
+
+# Run K-means for k=2
+k = 2
+labels_k2, centroids_k2, inertia_k2 = kmeans_clustering(X_normalized, k)
+
+# Display results for k=2
+labels_k2, centroids_k2, inertia_k2
+    
